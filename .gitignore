@@ -1,0 +1,58 @@
+# AUTOMATIC1111 Setup Project - Git Ignore Rules
+
+# AUTOMATIC1111 Installation (cloned repository)
+webui/
+
+# Runtime directories and files
+data/models/*
+!data/models/.gitkeep
+data/output/*
+!data/output/.gitkeep
+logs/
+*.log
+
+# Temporary and generated files
+startup-monitor.ps1
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Sensitive files (if any)
+*.key
+*.pem
+config.json
