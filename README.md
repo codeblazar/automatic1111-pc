@@ -26,10 +26,12 @@ Clean, native installation of Stable Diffusion WebUI without Docker complexity.
 
 - ✅ **Isolated Environment** - Automatic Python virtual environment
 - ✅ **Easy Updates** - Simple `git pull` in webui folder
-- ✅ **Full API Access** - Complete Swagger/OpenAPI interface
+- ✅ **Full API Access** - Complete Swagger/OpenAPI interface at `/docs`
 - ✅ **Native Performance** - No Docker overhead or complexity
 - ✅ **GPU Acceleration** - Automatic CUDA detection and setup
-- ✅ **Auto-Start Option** - Boot with Windows capability
+- ✅ **Auto-Start Ready** - Boot with Windows (one-time admin setup)
+- ✅ **Smart Python Detection** - Finds Python 3.10 in standard locations
+- ✅ **Background Operation** - Runs hidden, accessible via browser
 
 ## 📋 Requirements
 
@@ -44,41 +46,52 @@ Clean, native installation of Stable Diffusion WebUI without Docker complexity.
 ## 🔧 Management Commands
 
 ```powershell
-# Start AUTOMATIC1111
+# Start AUTOMATIC1111 manually
 .\start.ps1
 
-# Setup auto-start with Windows (requires Admin)
+# Setup auto-start with Windows (ONE-TIME, requires Admin)
+# Right-click PowerShell -> "Run as Administrator"
 .\setup-autostart.ps1
 
-# Remove auto-start
+# Remove auto-start (requires Admin)
 .\remove-autostart.ps1
 
 # Update AUTOMATIC1111
 cd webui
 git pull
 
-# View startup logs
+# Check auto-start task status
+Get-ScheduledTask -TaskName "AUTOMATIC1111-AutoStart"
+
+# Test auto-start manually
+Start-ScheduledTask -TaskName "AUTOMATIC1111-AutoStart"
+
+# View startup logs (from project directory)
+cd C:\Projects\automatic1111
 Get-Content logs\startup-*.log
+
+# Check if AUTOMATIC1111 is running
+Get-Process python -ErrorAction SilentlyContinue
 ```
 
 ## 📁 Project Structure
 
 ```
 automatic1111/
-├── webui/                    # AUTOMATIC1111 installation
-│   ├── venv/                # Python virtual environment
+├── webui/                    # AUTOMATIC1111 installation (created by setup)
+│   ├── venv/                # Python virtual environment (auto-created)
 │   ├── models/              # AI models directory
 │   ├── outputs/             # Generated images
-│   └── webui-user.bat       # Configuration file
+│   └── webui-user.bat       # Configuration file (auto-generated)
 ├── data/
-│   ├── models/              # Symlink to webui/models
-│   └── output/              # Symlink to webui/outputs
-├── logs/                    # Startup and error logs
+│   ├── models/              # Convenient models directory
+│   └── output/              # Convenient outputs directory  
+├── logs/                    # Auto-start logs (created when needed)
 ├── setup-native.ps1         # Main installation script
-├── start.ps1               # Startup script
-├── setup-autostart.ps1     # Auto-start setup
-├── remove-autostart.ps1    # Remove auto-start
-└── README.md               # This file
+├── start.ps1               # Manual startup script
+├── setup-autostart.ps1     # Auto-start setup (requires admin)
+├── remove-autostart.ps1    # Remove auto-start (requires admin)
+└── README.md               # This comprehensive guide
 ```
 
 ## 🌐 API Documentation
@@ -132,6 +145,21 @@ $response = Invoke-RestMethod -Uri "http://localhost:7860/sdapi/v1/txt2img" -Met
 
 ## 🔧 Configuration
 
+### Auto-Start Configuration
+
+**Setup (One-time, requires Administrator):**
+```powershell
+# Right-click PowerShell -> "Run as Administrator"
+.\setup-autostart.ps1
+```
+
+**What it does:**
+- Creates Windows Task Scheduler entry
+- Starts AUTOMATIC1111 automatically 2 minutes after boot
+- Runs in background (hidden window)
+- Available at http://localhost:7860 after startup
+- Logs startup process to `logs\startup-YYYY-MM-DD.log`
+
 ### Custom Settings
 
 Edit `webui\webui-user.bat` to modify:
@@ -153,6 +181,32 @@ set COMMANDLINE_ARGS=--listen --api --port 7860 --enable-insecure-extension-acce
 
 ## 🚨 Troubleshooting
 
+### Auto-Start Issues
+
+**Task not running after reboot:**
+```powershell
+# Check task status
+Get-ScheduledTask -TaskName "AUTOMATIC1111-AutoStart"
+
+# Check task history
+Get-WinEvent -FilterHashtable @{LogName="Microsoft-Windows-TaskScheduler/Operational"; ID=200,201} | Where-Object {$_.Message -like "*AUTOMATIC1111*"}
+
+# Test manually
+Start-ScheduledTask -TaskName "AUTOMATIC1111-AutoStart"
+```
+
+**Auto-start setup fails:**
+- Must run PowerShell as Administrator
+- Windows Task Scheduler service must be running
+- User account must have task scheduling permissions
+
+**Logs not found:**
+```powershell
+# Always navigate to project directory first
+cd C:\Projects\automatic1111
+Get-Content logs\startup-*.log
+```
+
 ### Common Issues
 
 **Port already in use:**
@@ -164,10 +218,11 @@ netstat -ano | findstr :7860
 taskkill /PID [PID_NUMBER] /F
 ```
 
-**Python not found:**
-- Ensure Python 3.10.x is installed
+**Python not found during setup:**
+- Ensure Python 3.10.x is installed (not 3.11+ or 3.13+)
 - Verify installation path in script output
 - Reinstall Python with "Add to PATH" checked
+- Script checks: `C:\Users\USERNAME\AppData\Local\Programs\Python\Python310\python.exe`
 
 **GPU not detected:**
 - Install latest NVIDIA drivers
@@ -178,6 +233,18 @@ taskkill /PID [PID_NUMBER] /F
 - Reduce image resolution
 - Use `--medvram` or `--lowvram`
 - Close other GPU applications
+
+**AUTOMATIC1111 won't start:**
+```powershell
+# Check if Python processes are running
+Get-Process python -ErrorAction SilentlyContinue
+
+# Check webui directory exists
+Test-Path webui
+
+# Re-run setup if webui missing
+.\setup-native.ps1
+```
 
 ### Getting Help
 
