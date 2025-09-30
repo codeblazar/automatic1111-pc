@@ -6,7 +6,32 @@ Clean, native installation of Stable Diffusion WebUI without Docker complexity.
 
 1. **Install Requirements**
    - Python 3.10.x: https://www.python.org/downloads/release/python-3106/
-   - Git: https://git-scm.com/download/win
+   - Git: https://git-sc### **Start/Stop Issues**
+
+**Start script says "may still be starting up":**
+- This is normal - AUTOMATIC1111 takes 1-3 minutes to fully load
+- Wait a few minutes, then try accessing http://localhost:7860
+- Check process: `Get-Process python -ErrorAction SilentlyContinue`
+
+**Stop script shows "WILL restart on reboot":**
+- Auto-start task is enabled (normal behavior)
+- To prevent restart: Run PowerShell as Admin, then `Disable-ScheduledTask -TaskName "AUTOMATIC1111-AutoStart"`
+- Temporary stop only affects current session
+
+**AUTOMATIC1111 won't start:**
+```powershell
+# Check if Python processes are running
+Get-Process python -ErrorAction SilentlyContinue
+
+# Check webui directory exists
+Test-Path webui
+
+# Re-run setup if webui missing
+.\setup-native.ps1
+
+# Check for port conflicts
+netstat -ano | findstr :7860
+```oad/win
 
 2. **Setup AUTOMATIC1111**
    ```powershell
@@ -30,8 +55,9 @@ Clean, native installation of Stable Diffusion WebUI without Docker complexity.
 - ✅ **Native Performance** - No Docker overhead or complexity
 - ✅ **GPU Acceleration** - Automatic CUDA detection and setup
 - ✅ **Auto-Start Ready** - Boot with Windows (one-time admin setup)
-- ✅ **Smart Python Detection** - Finds Python 3.10 in standard locations
-- ✅ **Background Operation** - Runs hidden, accessible via browser
+- ✅ **Smart Management** - Enhanced start/stop scripts with intelligent behavior
+- ✅ **Background Operation** - Starts in background, returns control immediately
+- ✅ **Realistic Timeouts** - Accounts for normal 1-3 minute startup times
 
 ## 📋 Requirements
 
@@ -45,10 +71,20 @@ Clean, native installation of Stable Diffusion WebUI without Docker complexity.
 
 ## 🔧 Management Commands
 
+### **🚀 Start & Stop**
 ```powershell
-# Start AUTOMATIC1111 manually
+# Start AUTOMATIC1111 (background, returns cursor)
 .\start.ps1
 
+# Stop AUTOMATIC1111 (shows reboot behavior)
+.\stop.ps1
+
+# Quick restart
+.\stop.ps1; .\start.ps1
+```
+
+### **⚙️ Auto-Start Setup**
+```powershell
 # Setup auto-start with Windows (ONE-TIME, requires Admin)
 # Right-click PowerShell -> "Run as Administrator"
 .\setup-autostart.ps1
@@ -56,22 +92,27 @@ Clean, native installation of Stable Diffusion WebUI without Docker complexity.
 # Remove auto-start (requires Admin)
 .\remove-autostart.ps1
 
-# Update AUTOMATIC1111
-cd webui
-git pull
+# Disable auto-start temporarily (requires Admin)
+Disable-ScheduledTask -TaskName "AUTOMATIC1111-AutoStart"
+
+# Re-enable auto-start (requires Admin)
+Enable-ScheduledTask -TaskName "AUTOMATIC1111-AutoStart"
+```
+
+### **📊 Monitoring & Updates**
+```powershell
+# Check if AUTOMATIC1111 is running
+Get-Process python -ErrorAction SilentlyContinue
 
 # Check auto-start task status
 Get-ScheduledTask -TaskName "AUTOMATIC1111-AutoStart"
 
-# Test auto-start manually
-Start-ScheduledTask -TaskName "AUTOMATIC1111-AutoStart"
-
 # View startup logs (from project directory)
-cd C:\Projects\automatic1111
 Get-Content logs\startup-*.log
 
-# Check if AUTOMATIC1111 is running
-Get-Process python -ErrorAction SilentlyContinue
+# Update AUTOMATIC1111
+cd webui
+git pull
 ```
 
 ## 📁 Project Structure
@@ -93,6 +134,28 @@ automatic1111/
 ├── remove-autostart.ps1    # Remove auto-start (requires admin)
 └── README.md               # This comprehensive guide
 ```
+
+## ⏱️ Startup Times & Behavior
+
+### **Expected Startup Duration**
+| Scenario | Typical Time | What Happens |
+|----------|-------------|---------------|
+| **First install** | 5-15 minutes | Downloads models, installs dependencies |
+| **After restart** | 1-3 minutes | Loading models into VRAM/memory |
+| **Warm restart** | 30s-2 minutes | Faster model loading |
+
+### **Start Script Behavior**
+- ✅ **Background launch** - Starts hidden, returns cursor immediately
+- ✅ **Smart detection** - Won't start duplicates if already running
+- ✅ **Progress monitoring** - Shows elapsed time during startup
+- ✅ **Auto-enable** - Re-enables auto-start task when starting manually
+- ✅ **Realistic timeout** - Waits up to 3 minutes for startup completion
+
+### **Stop Script Behavior**  
+- ✅ **Complete shutdown** - Stops all Python processes and port usage
+- ✅ **Auto-start aware** - Shows whether it will restart on reboot
+- ✅ **Admin guidance** - Clear instructions for disabling auto-restart
+- ✅ **Verification** - Confirms successful shutdown
 
 ## 🌐 API Documentation
 
